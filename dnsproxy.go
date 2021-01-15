@@ -46,7 +46,10 @@ func (p Dnsproxy) ServeDNS(ctx context.Context, w dns.ResponseWriter, r *dns.Msg
 		log.Fatal(ret.Err())
 	}
 	if ret.Val() {
-		reply = "1.1.1.1"
+		reply, present = os.LookupEnv("NEW_DNS_IP")
+		if !present {
+			reply = "1.1.1.1"
+		}
 	}
 
 	fmt.Printf("Received query %s from %s, expected to reply %s\n", qname, state.IP(), reply)
