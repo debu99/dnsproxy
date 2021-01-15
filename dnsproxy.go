@@ -3,8 +3,8 @@ package dnsproxy
 
 import (
 	"context"
-	//"fmt"
 	"net"
+	"os"
 	//"strings"
 
 	clog "github.com/coredns/coredns/plugin/pkg/log"
@@ -25,7 +25,7 @@ func (p Dnsproxy) ServeDNS(ctx context.Context, w dns.ResponseWriter, r *dns.Msg
 	// Debug log that we've have seen the query. This will only be shown when the debug plugin is loaded.
 	log.Debug("Received from plugin...")
 
-	opt, err := redis.ParseURL("redis://localhost:6379/0")
+	opt, err := redis.ParseURL(os.Getenv("REDIS_URL"))
 	if err != nil {
 		log.Fatal("redis url error", err)
 	}
