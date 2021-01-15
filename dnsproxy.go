@@ -41,11 +41,11 @@ func (p Dnsproxy) ServeDNS(ctx context.Context, w dns.ResponseWriter, r *dns.Msg
 	qname := state.Name()
 
 	reply := "8.8.8.8"
-	if n, err := rdb.SIsMember(ctx, "ipsets", state.IP()); err != nil {
-		log.Fatal(err)
-	} else if n != 1 {
-		log.Fatal(n)
-	} else {
+	ret := rdb.SIsMember(ctx, "ipsets", state.IP())
+	if ret.Err() != nil {
+		log.Fatal(ret.Err())
+	}
+	if ret.Val() {
 		reply = "1.1.1.1"
 	}
 
