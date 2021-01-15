@@ -1,4 +1,4 @@
-package demo
+package dnsproxy
 
 import (
 	"github.com/coredns/caddy"
@@ -14,13 +14,13 @@ func init() {
 }
 
 func setup(c *caddy.Controller) error {
-	c.Next() // 'demo'
+	c.Next() // 'dnsproxy'
 	if c.NextArg() {
 		return plugin.Error("dnsproxy", c.ArgErr())
 	}
 
 	dnsserver.GetConfig(c).AddPlugin(func(next plugin.Handler) plugin.Handler {
-		return Demo{}
+		return Dnsproxy{}
 	})
 
 	return nil

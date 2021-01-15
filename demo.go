@@ -1,5 +1,5 @@
-// Package demo implements a plugin
-package demo
+// Package dnsproxy implements a plugin
+package dnsproxy
 
 import (
 	"context"
@@ -8,15 +8,28 @@ import (
 	"strings"
 
 	"github.com/coredns/coredns/request"
-
+	clog "github.com/coredns/coredns/plugin/pkg/log"
 	"github.com/miekg/dns"
 )
 
-// Demo is a plugin in CoreDNS
-type Demo struct{}
+// Define log to be a logger with the plugin name in it. This way we can just use log.Info and
+// friends to log.
+var log = clog.NewWithPlugin("dnsproxy")
+
+// Dnsproxy is a plugin in CoreDNS
+type Dnsproxy struct{}
 
 // ServeDNS implements the plugin.Handler interface.
-func (p Demo) ServeDNS(ctx context.Context, w dns.ResponseWriter, r *dns.Msg) (int, error) {
+func (p Dnsproxy) ServeDNS(ctx context.Context, w dns.ResponseWriter, r *dns.Msg) (int, error) {
+
+	fmt.Println("example0") 
+
+	// Debug log that we've have seen the query. This will only be shown when the debug plugin is loaded.
+	log.Debug("Received response")
+
+	// Wrap.
+	pw := NewResponsePrinter(w)
+
 	state := request.Request{W: w, Req: r}
 	qname := state.Name()
 
@@ -48,4 +61,21 @@ func (p Demo) ServeDNS(ctx context.Context, w dns.ResponseWriter, r *dns.Msg) (i
 }
 
 // Name implements the Handler interface.
-func (p Demo) Name() string { return "demo" }
+func (p Dnsproxy) Name() string { return "dnsproxy" }
+
+// ResponsePrinter wrap a dns.ResponseWriter and will write example to standard output when WriteMsg is called.
+type ResponsePrinter struct {
+	dns.ResponseWriter
+}
+
+// NewResponsePrinter returns ResponseWriter.
+func NewResponsePrinter(w dns.ResponseWriter) *ResponsePrinter {
+	return &ResponsePrinter{ResponseWriter: w}
+}
+
+// WriteMsg calls the underlying ResponseWriter's WriteMsg method and prints "example" to standard output.
+func (r *ResponsePrinter) WriteMsg(res *dns.Msg) error {
+	log.Info("example")
+	return r.ResponseWriter.WriteMsg(res)
+}
+
