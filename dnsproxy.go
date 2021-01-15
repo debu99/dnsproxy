@@ -3,9 +3,9 @@ package dnsproxy
 
 import (
 	"context"
-	"fmt"
+	//"fmt"
 	"net"
-	"strings"
+	//"strings"
 
 	clog "github.com/coredns/coredns/plugin/pkg/log"
 	"github.com/coredns/coredns/request"
