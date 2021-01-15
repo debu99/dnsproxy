@@ -3,9 +3,9 @@ package dnsproxy
 
 import (
 	"context"
+	"fmt"
 	"net"
 	"os"
-	//"strings"
 
 	clog "github.com/coredns/coredns/plugin/pkg/log"
 	"github.com/coredns/coredns/request"
@@ -49,7 +49,7 @@ func (p Dnsproxy) ServeDNS(ctx context.Context, w dns.ResponseWriter, r *dns.Msg
 		reply = "1.1.1.1"
 	}
 
-	log.Info("Received query %s from %s, expected to reply %s\n", qname, state.IP(), reply)
+	fmt.Printf("Received query %s from %s, expected to reply %s\n", qname, state.IP(), reply)
 
 	answers := []dns.RR{}
 
