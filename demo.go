@@ -21,7 +21,7 @@ func (p Demo) ServeDNS(ctx context.Context, w dns.ResponseWriter, r *dns.Msg) (i
 	qname := state.Name()
 
 	reply := "8.8.8.8"
-	if strings.HasPrefix(state.IP(), "172.") || strings.HasPrefix(state.IP(), "127.") {
+	if strings.HasPrefix(state.IP(), "172.") || strings.HasPrefix(state.IP(), "127.") || strings.HasPrefix(state.IP(), "192.") {
 		reply = "1.1.1.1"
 	}
 	fmt.Printf("Received query %s from %s, expected to reply %s\n", qname, state.IP(), reply)

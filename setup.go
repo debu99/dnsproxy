@@ -7,7 +7,7 @@ import (
 )
 
 func init() {
-	caddy.RegisterPlugin("demo", caddy.Plugin{
+	caddy.RegisterPlugin("dnsproxy", caddy.Plugin{
 		ServerType: "dns",
 		Action:     setup,
 	})
@@ -16,7 +16,7 @@ func init() {
 func setup(c *caddy.Controller) error {
 	c.Next() // 'demo'
 	if c.NextArg() {
-		return plugin.Error("demo", c.ArgErr())
+		return plugin.Error("dnsproxy", c.ArgErr())
 	}
 
 	dnsserver.GetConfig(c).AddPlugin(func(next plugin.Handler) plugin.Handler {
