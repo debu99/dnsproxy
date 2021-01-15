@@ -7,8 +7,9 @@ import (
 	"net"
 	"strings"
 
-	"github.com/coredns/coredns/request"
 	clog "github.com/coredns/coredns/plugin/pkg/log"
+	"github.com/coredns/coredns/request"
+	"github.com/go-redis/redis/v8"
 	"github.com/miekg/dns"
 )
 
@@ -21,23 +22,34 @@ type Dnsproxy struct{}
 
 // ServeDNS implements the plugin.Handler interface.
 func (p Dnsproxy) ServeDNS(ctx context.Context, w dns.ResponseWriter, r *dns.Msg) (int, error) {
-
-	fmt.Println("example0") 
-
 	// Debug log that we've have seen the query. This will only be shown when the debug plugin is loaded.
-	log.Debug("Received response")
+	log.Debug("Received from plugin...")
 
-	// Wrap.
-	pw := NewResponsePrinter(w)
+	opt, err := redis.ParseURL("redis://localhost:6379/0")
+	if err != nil {
+		log.Fatal("redis url error", err)
+	}
+
+	rdb := redis.NewClient(opt)
+	err = rdb.Ping(ctx).Err()
+	if err != nil {
+		log.Fatal("redis connect failed", err)
+	}
+	defer rdb.Close()
 
 	state := request.Request{W: w, Req: r}
 	qname := state.Name()
 
 	reply := "8.8.8.8"
-	if strings.HasPrefix(state.IP(), "172.") || strings.HasPrefix(state.IP(), "127.") || strings.HasPrefix(state.IP(), "192.") {
+	if n, err := rdb.SIsMember(ctx, "ipsets", state.IP()); err != nil {
+		log.Fatal(err)
+	} else if n != 1 {
+		log.Fatal(n)
+	} else {
 		reply = "1.1.1.1"
 	}
-	fmt.Printf("Received query %s from %s, expected to reply %s\n", qname, state.IP(), reply)
+
+	log.Info("Received query %s from %s, expected to reply %s\n", qname, state.IP(), reply)
 
 	answers := []dns.RR{}
 
@@ -62,20 +74,3 @@ func (p Dnsproxy) ServeDNS(ctx context.Context, w dns.ResponseWriter, r *dns.Msg
 
 // Name implements the Handler interface.
 func (p Dnsproxy) Name() string { return "dnsproxy" }
-
-// ResponsePrinter wrap a dns.ResponseWriter and will write example to standard output when WriteMsg is called.
-type ResponsePrinter struct {
-	dns.ResponseWriter
-}
-
-// NewResponsePrinter returns ResponseWriter.
-func NewResponsePrinter(w dns.ResponseWriter) *ResponsePrinter {
-	return &ResponsePrinter{ResponseWriter: w}
-}
-
-// WriteMsg calls the underlying ResponseWriter's WriteMsg method and prints "example" to standard output.
-func (r *ResponsePrinter) WriteMsg(res *dns.Msg) error {
-	log.Info("example")
-	return r.ResponseWriter.WriteMsg(res)
-}
-
