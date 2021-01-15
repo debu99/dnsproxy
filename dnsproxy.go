@@ -25,7 +25,12 @@ func (p Dnsproxy) ServeDNS(ctx context.Context, w dns.ResponseWriter, r *dns.Msg
 	// Debug log that we've have seen the query. This will only be shown when the debug plugin is loaded.
 	log.Debug("Received from plugin...")
 
-	opt, err := redis.ParseURL(os.Getenv("REDIS_URL"))
+	redisUrl, present := os.LookupEnv("REDIS_URL")
+	if !present {
+		redisUrl = "redis://localhost:6379/0"
+	}
+
+	opt, err := redis.ParseURL(redisUrl)
 	if err != nil {
 		log.Fatal("redis url error", err)
 	}
